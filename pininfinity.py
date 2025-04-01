@@ -56,11 +56,14 @@ def save_to_file(pi_value, precision, iterations, elapsed_time):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"pi_calculation_{timestamp}.txt"
     
+    digits_per_second = precision / elapsed_time if elapsed_time > 0 else 0
+    
     with open(filename, "w") as file:
         file.write(f"Pi Calculation\n")
         file.write(f"Achieved Precision: ~{precision} digits\n")
         file.write(f"Completed Iterations: {iterations}\n")
-        file.write(f"Calculation Time: {elapsed_time:.2f} seconds\n\n")
+        file.write(f"Calculation Time: {elapsed_time:.2f} seconds\n")
+        file.write(f"Performance: {digits_per_second:.1f} digits/second\n\n")
         file.write(str(pi_value))
     
     return filename
@@ -121,7 +124,9 @@ def calculate_pi(time_limit=None):
         if current_time - current_results["last_update"] > 2:
             display_pi(pi)
             elapsed = current_time - start_time
-            print(f"Runtime: {elapsed:.2f} seconds | Iterations: {iterations} | Precision: ~{precision} digits")
+            digits_per_second = precision / elapsed if elapsed > 0 else 0
+            print(f"Runtime: {elapsed:.2f} seconds | Iterations: {iterations} | "
+                  f"Precision: ~{precision} digits | Speed: {digits_per_second:.1f} digits/second")
             current_results["last_update"] = current_time
     
     # Function for the calculation thread
@@ -182,9 +187,11 @@ def calculate_pi(time_limit=None):
         
         display_pi(pi_value)
         
+        digits_per_second = precision / elapsed_time if elapsed_time > 0 else 0
         print(f"\nCalculation completed after {elapsed_time:.2f} seconds")
         print(f"Completed Iterations: {iterations}")
         print(f"Achieved Precision: ~{precision} digits")
+        print(f"Final Performance: {digits_per_second:.1f} digits/second")
         
         filename = save_to_file(pi_value, precision, iterations, elapsed_time)
         print(f"Result saved in {filename}")

@@ -47,7 +47,7 @@ A Python program that calculates π (Pi) with continuously increasing precision 
   - Current precision and iteration count
 
 - File output:
-  - Results are automatically saved to `pi_berechnung_YYYYMMDD_HHMMSS.txt`
+  - Results are automatically saved to `pi_calculation_YYYYMMDD_HHMMSS.txt`
   - Includes calculation details and full π value
 
 ## Technical Details
