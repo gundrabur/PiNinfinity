@@ -4,6 +4,7 @@ import threading
 import sys
 import os
 from datetime import datetime
+from multiprocessing import Pool, cpu_count
 
 # Decimal precision for start (continuously increasing)
 BASE_PRECISION = 1000
@@ -51,6 +52,52 @@ def chudnovsky_algorithm(precision, update_callback, stop_event):
     
     return pi, precision, current_iteration
 
+def chudnovsky_chunk(args):
+    """Calculate a chunk of the Chudnovsky series"""
+    start_k, chunk_size, precision = args
+    decimal.getcontext().prec = precision
+    
+    sum_total = decimal.Decimal(0)
+    M = decimal.Decimal(1)
+    L = decimal.Decimal(13591409 + 545140134 * start_k)
+    X = decimal.Decimal(1)
+    K = decimal.Decimal(6 + 12 * start_k)
+    
+    for k in range(chunk_size):
+        M = M * (K**3 - 16*K) // ((start_k + k + 1)**3)
+        L = L + 545140134
+        X = X * -262537412640768000
+        sum_total += decimal.Decimal(M * L) / X
+        K += 12
+    
+    return sum_total
+
+def chudnovsky_multithread(precision, update_callback, stop_event):
+    """Multithreaded version of the Chudnovsky algorithm"""
+    decimal.getcontext().prec = precision
+    C = 426880 * decimal.Decimal(10005).sqrt()
+    threads = cpu_count()
+    chunk_size = 10  # Process 10 iterations per chunk
+    current_iteration = 0
+    
+    with Pool(threads) as pool:
+        while not stop_event.is_set():
+            chunks = [(i, chunk_size, precision) for i in range(current_iteration, current_iteration + threads)]
+            results = pool.map(chudnovsky_chunk, chunks)
+            
+            S = sum(results)
+            pi = C / S
+            
+            current_iteration += threads * chunk_size
+            
+            if current_iteration % 10 == 0:
+                new_precision = precision + 100
+                decimal.getcontext().prec = new_precision
+                precision = new_precision
+                update_callback(pi, current_iteration, precision)
+    
+    return pi, precision, current_iteration
+
 def save_to_file(pi_value, precision, iterations, elapsed_time):
     """Saves the calculated Pi value to a text file."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -95,10 +142,11 @@ def display_pi(pi_value, max_display=1000):
     
     print("\n" + "-" * 60)
 
-def calculate_pi(time_limit=None):
+def calculate_pi(time_limit=None, use_multithread=False):
     """Main function for continuous Pi calculation with optional time limit."""
     print("Starting continuous Pi calculation" + 
-          (f" (Time limit: {time_limit} seconds)" if time_limit else ""))
+          (f" (Time limit: {time_limit} seconds)" if time_limit else "") +
+          (f" using {'multithread' if use_multithread else 'single thread'} mode"))
     print("Precision increases with runtime.")
     print("Press Ctrl+C to stop the calculation at any time.")
     
@@ -132,11 +180,18 @@ def calculate_pi(time_limit=None):
     # Function for the calculation thread
     def calculation_thread():
         try:
-            pi, final_precision, iterations = chudnovsky_algorithm(
-                BASE_PRECISION, 
-                update_results,
-                stop_event
-            )
+            if use_multithread:
+                pi, final_precision, iterations = chudnovsky_multithread(
+                    BASE_PRECISION,
+                    update_results,
+                    stop_event
+                )
+            else:
+                pi, final_precision, iterations = chudnovsky_algorithm(
+                    BASE_PRECISION,
+                    update_results,
+                    stop_event
+                )
             current_results["pi"] = pi
             current_results["precision"] = final_precision
             current_results["iterations"] = iterations
@@ -218,12 +273,16 @@ def main():
         if use_time_limit:
             time_limit = float(input("Time limit in seconds: "))
         
+        use_multithread = input("\nUse multithread mode? (y/n): ").lower() == 'y'
+        if use_multithread:
+            print(f"Using {cpu_count()} CPU cores")
+        
         print("\nCalculation starting...")
         print("Press Ctrl+C to stop the calculation at any time.")
         # Short pause to allow user to read the message
         time.sleep(2)  
         
-        calculate_pi(time_limit)
+        calculate_pi(time_limit, use_multithread)
         
     except ValueError:
         print("Error: Please enter a valid number.")

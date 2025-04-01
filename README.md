@@ -6,6 +6,7 @@ A Python program that calculates π (Pi) with continuously increasing precision 
 
 - Continuous calculation of π with increasing precision
 - Optional time limit for calculations
+- Multithread support for faster calculations
 - Real-time display of calculated digits
 - Automatic saving of results to file
 - Clean console interface
@@ -33,6 +34,7 @@ A Python program that calculates π (Pi) with continuously increasing precision 
 2. Choose calculation mode:
    - Set a time limit (y/n)
    - If yes, enter the desired duration in seconds
+   - Choose between single thread or multithread mode
 
 3. Monitor the calculation:
    - Watch real-time updates of π
@@ -53,6 +55,7 @@ A Python program that calculates π (Pi) with continuously increasing precision 
 ## Technical Details
 
 - Uses the Chudnovsky algorithm for fast convergence
+- Optional multithread processing using all available CPU cores
 - Precision increases by 100 digits every 10 iterations
 - Initial precision starts at 1000 digits
 - Multithreaded implementation for responsiveness
