@@ -211,18 +211,19 @@ def main():
         if use_time_limit:
             time_limit = float(input("Zeitlimit in Sekunden: "))
         
-        print("\nBerechnung startet...")
-        print("Drücken Sie Strg+C, um die Berechnung jederzeit abzubrechen.")
-        time.sleep(2)  # Kurze Pause, damit der Benutzer die Meldung lesen kann
+        print("\nCalculation starting...")
+        print("Press Ctrl+C to stop the calculation at any time.")
+        # Short pause to allow user to read the message
+        time.sleep(2)  
         
         calculate_pi(time_limit)
         
     except ValueError:
-        print("Fehler: Bitte geben Sie eine gültige Zahl ein.")
+        print("Error: Please enter a valid number.")
     except KeyboardInterrupt:
-        print("\nProgramm wurde vom Benutzer beendet.")
+        print("\nProgram terminated by user.")
     
-    print("\nDanke für die Verwendung dieses Programms!")
+    print("\nThank you for using this program!")
 
 if __name__ == "__main__":
     main()
